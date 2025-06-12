@@ -1,0 +1,7 @@
+fastapi
+requests
+beautifulsoup4
+firebase-admin
+python-multipart
+pydantic
+uvicorn
