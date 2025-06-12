@@ -1,103 +1,199 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+import { useState, useEffect } from 'react';
+import Layout from '@/components/Layout/Layout';
+import LoginForm from '@/components/Auth/LoginForm';
+import RegisterForm from '@/components/Auth/RegisterForm';
+import AlcoholItemsList from '@/components/AlcoholItems/AlcoholItemsList';
+import { User, AlcoholItem } from '@/types';
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+export default function HomePage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [activeTab, setActiveTab] = useState('alcohol');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [alcoholItems, setAlcoholItems] = useState<AlcoholItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Mock authentication functions
+  const handleLogin = async (email: string) => {
+    setAuthLoading(true);
+    setAuthError('');
+    
+    try {
+      // TODO: Replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      
+      const mockUser: User = {
+        id: '1',
+        email,
+        firstName: 'Demo',
+        lastName: 'User',
+        createdAt: new Date()
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+    } catch {
+      setAuthError('Login failed. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleRegister = async (email: string, password: string, firstName: string, lastName: string) => {
+    setAuthLoading(true);
+    setAuthError('');
+    
+    try {
+      // TODO: Replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      
+      const mockUser: User = {
+        id: '1',
+        email,
+        firstName,
+        lastName,
+        createdAt: new Date()
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+    } catch {
+      setAuthError('Registration failed. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
+
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  // Mock data loading
+  useEffect(() => {
+    if (user && activeTab === 'alcohol') {
+      setLoading(true);
+      // TODO: Replace with actual API call
+      setTimeout(() => {
+        setAlcoholItems([
+          {
+            id: '1',
+            userId: user.id,
+            name: 'Jameson Irish Whiskey',
+            brand: 'Jameson',
+            type: 'Whiskey',
+            size: 700,
+            alcoholPercentage: 40,
+            price: 45.99,
+            pricePerLiter: 65.70,
+            shop: 'BWS',
+            lastUpdated: new Date(),
+            productUrl: 'https://bws.com.au/product/jameson'
+          },
+          {
+            id: '2',
+            userId: user.id,
+            name: 'Grey Goose Vodka',
+            brand: 'Grey Goose',
+            type: 'Vodka',
+            size: 750,
+            alcoholPercentage: 40,
+            price: 65.99,
+            pricePerLiter: 87.99,
+            shop: 'Liquorland',
+            lastUpdated: new Date()
+          }
+        ]);
+        setLoading(false);
+      }, 500);
+    }
+  }, [user, activeTab]);
+
+  const handleEditItem = (item: AlcoholItem) => {
+    // TODO: Implement edit functionality
+    console.log('Edit item:', item);
+  };
+
+  const handleDeleteItem = (id: string) => {
+    // TODO: Implement delete functionality
+    console.log('Delete item:', id);
+    setAlcoholItems(items => items.filter(item => item.id !== id));
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'alcohol':
+        return (
+          <AlcoholItemsList
+            items={alcoholItems}
+            onEdit={handleEditItem}
+            onDelete={handleDeleteItem}
+            loading={loading}
+          />
+        );
+      case 'ingredients':
+        return <div className="text-center py-12 text-gray-500">Ingredients feature coming soon...</div>;
+      case 'cocktails':
+        return <div className="text-center py-12 text-gray-500">Cocktails feature coming soon...</div>;
+      case 'prices':
+        return <div className="text-center py-12 text-gray-500">Price updates feature coming soon...</div>;
+      default:
+        return <div>Select a tab</div>;
+    }
+  };
+
+  if (!user) {
+    return (
+      <Layout
+        user={user}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onLogout={handleLogout}
+      >
+        <div className="flex items-center justify-center min-h-[60vh]">
+          {authMode === 'login' ? (
+            <LoginForm
+              onLogin={handleLogin}
+              onSwitchToRegister={() => setAuthMode('register')}
+              loading={authLoading}
+              error={authError}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          ) : (
+            <RegisterForm
+              onRegister={handleRegister}
+              onSwitchToLogin={() => setAuthMode('login')}
+              loading={authLoading}
+              error={authError}
+            />
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout
+      user={user}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      onLogout={handleLogout}
+    >
+      {renderTabContent()}
+    </Layout>
   );
 }
